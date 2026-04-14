@@ -1,116 +1,71 @@
-<?php include 'tareas.php'; ?>
+<?php
+include 'db.php';
 
+ $pendientes = $conn->query("SELECT * FROM tareas WHERE estado = 0 ORDER BY fecha ASC");
+ $completadas = $conn->query("SELECT * FROM tareas WHERE estado = 1 ORDER BY id DESC LIMIT 5");
+
+ $pendientesArr = [];
+while ($r = $pendientes->fetch_assoc()) $pendientesArr[] = $r;
+
+ $completadasArr = [];
+while ($r = $completadas->fetch_assoc()) $completadasArr[] = $r;
+?>
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de gestión de tareas escolares</title>
+    <title>Gestión de Tareas</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text: #1e293b;
-            --low: #22c55e;
-            --medium: #f59e0b;
-            --high: #ef4444;
-        }
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 50px;
-        }
-        .container { max-width: 900px; margin-top: 40px; }
-        header { text-align: center; margin-bottom: 40px; }
-        header h1 { font-weight: 800; color: var(--primary); font-size: 2.5rem; }
-        
-        .card-custom {
-            background: var(--card-bg);
-            border-radius: 20px;
-            border: none;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            padding: 30px;
-            margin-bottom: 30px;
-            transition: transform 0.3s ease;
-        }
-        .form-label { font-weight: 600; font-size: 0.9rem; color: #64748b; }
-        .btn-primary { 
-            background: var(--primary); 
-            border: none; 
-            padding: 12px 25px; 
-            border-radius: 12px; 
-            font-weight: 600;
-        }
-        .task-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-            background: white;
-            border-radius: 15px;
-            margin-bottom: 15px;
-            border-left: 5px solid #e2e8f0;
-            transition: all 0.3s ease;
-        }
-        .task-item:hover { transform: translateX(5px); }
-        .task-item.priority-Alta { border-left-color: var(--high); }
-        .task-item.priority-Media { border-left-color: var(--medium); }
-        .task-item.priority-Baja { border-left-color: var(--low); }
-        
-        .badge-materia {
-            background: #e0e7ff;
-            color: var(--primary);
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: inline-block;
-            margin-bottom: 8px;
-        }
-        .badge-tipo {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 3px 10px;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .task-info h3 { font-size: 1.15rem; margin-bottom: 5px; font-weight: 600; }
-        .task-info p { color: #64748b; font-size: 0.95rem; margin-bottom: 10px; }
-        .task-meta { font-size: 0.85rem; color: #94a3b8; }
-        
-        .empty-state { text-align: center; padding: 40px; color: #94a3b8; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <link rel="stylesheet" href="css/style.css">
 </head>
-
-
-
 <body>
-    <div class="container">
-        <header>
+
+    <div class="bg-decor" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app">
+
+        <header class="app-header">
             <h1>Organizador de Tareas</h1>
             <p>Organiza tus ideas, conquista tus metas.</p>
+            <div class="stats-bar">
+                <div class="stat">
+                    <div class="stat-icon pendiente"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <div class="stat-num" id="stat-pendientes"><?php echo count($pendientesArr); ?></div>
+                        <div class="stat-label">Pendientes</div>
+                    </div>
+                </div>
+                <div class="stat">
+                    <div class="stat-icon hecha"><i class="fa-solid fa-circle-check"></i></div>
+                    <div>
+                        <div class="stat-num" id="stat-completadas"><?php echo count($completadasArr); ?></div>
+                        <div class="stat-label">Completadas</div>
+                    </div>
+                </div>
+            </div>
         </header>
 
-        <div class="card-custom">
-            <h2 class="h4 mb-4"> Registrar Nueva Actividad</h2>
-            <form action="index.php" method="POST">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">¿Qué tarea es?</label>
-                        <input type="text" name="titulo" class="form-control" placeholder="Ej: Ejercicios de derivadas" required>
+        <section class="card" aria-label="Nueva tarea">
+            <h2 class="card-title"><i class="fa-solid fa-plus"></i> Nueva Tarea</h2>
+            <form id="form-tarea" autocomplete="off">
+                <div class="form-grid">
+                    <div class="field full">
+                        <label for="titulo">¿Qué tarea es?</label>
+                        <input type="text" name="titulo" id="titulo" placeholder="Ej: Ejercicios de derivadas" required>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Materia / Asignatura</label>
-                        <select name="materia" class="form-select">
+                    <div class="field col-3">
+                        <label for="materia">Materia / Asignatura</label>
+                        <select name="materia" id="materia">
                             <option value="Matemáticas">Matemáticas</option>
                             <option value="Historia">Historia</option>
                             <option value="Ciencias">Ciencias</option>
@@ -120,98 +75,304 @@
                             <option value="Otros">Otros</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Tipo</label>
-                        <select name="tipo" class="form-select">
+                    <div class="field col-3">
+                        <label for="tipo">Tipo</label>
+                        <select name="tipo" id="tipo">
                             <option value="Tarea">Individual</option>
                             <option value="Examen">Examen / Quiz</option>
                             <option value="Proyecto">Proyecto Final</option>
                             <option value="Exposición">Exposición</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Prioridad</label>
-                        <select name="prioridad" class="form-select">
+                    <div class="field col-3">
+                        <label for="prioridad">Prioridad</label>
+                        <select name="prioridad" id="prioridad">
                             <option value="Baja">Baja (Sin prisa)</option>
                             <option value="Media" selected>Media (Regular)</option>
                             <option value="Alta">Alta (¡Urgente!)</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Fecha de Entrega</label>
-                        <input type="date" name="fecha" class="form-control" required value="<?php echo date('Y-m-d'); ?>">
+                    <div class="field full">
+                        <label for="descripcion">Descripción o Notas</label>
+                        <textarea name="descripcion" id="descripcion" rows="2" placeholder="Ej: Páginas 45-50 del libro..."></textarea>
                     </div>
-                    <div class="col-12">
-                        <label class="form-label">Descripción o Notas</label>
-                        <textarea name="descripcion" class="form-control" rows="2" placeholder="Ej: Páginas 45-50 del libro..."></textarea>
+                    <div class="field">
+                        <label for="fecha">Fecha de Entrega</label>
+                        <input type="date" name="fecha" id="fecha" required value="<?php echo date('Y-m-d'); ?>">
                     </div>
-                    <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-primary">Guardar Tarea</button>
+                    <div class="field" style="display:flex;align-items:flex-end;">
+                        <button type="submit" class="btn-submit">
+                            <i class="fa-solid fa-paper-plane"></i> Guardar Tarea
+                        </button>
                     </div>
                 </div>
             </form>
-        </div>
+        </section>
 
-        <div class="mb-5">
-            <h2 class="h4 mb-4"> Mis Deberes Pendientes</h2>
-            <div class="task-sections">
-                <?php if ($pendientes->num_rows > 0): ?>
-                    <?php while ($row = $pendientes->fetch_assoc()): ?>
-                        <div class="task-item priority-<?php echo $row['prioridad']; ?>">
-                            <div class="task-info">
-                                <span class="badge-materia"><?php echo htmlspecialchars($row['materia']); ?></span>
-                                <span class="badge-tipo"><?php echo htmlspecialchars($row['tipo']); ?></span>
-                                <h3 class="mt-2 text-dark"><?php echo htmlspecialchars($row['titulo']); ?></h3>
-                                <p><?php echo htmlspecialchars($row['descripcion']); ?></p>
-                                <div class="task-meta">
-                                     Entrega: <strong><?php echo date('d/m/Y', strtotime($row['fecha'])); ?></strong> 
-                                    |  Prioridad: <strong><?php echo $row['prioridad']; ?></strong>
-                                </div>
-                            </div>
-                            <div class="task-actions d-flex gap-2">
-                                <a href="index.php?completar=<?php echo $row['id']; ?>" class="btn btn-sm btn-success rounded-pill px-3">
-                                    Listo
-                                </a>
-                                <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="return confirm('¿Eliminar esta tarea?')">
-                                    Borrar
-                                </a>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                <?php else: ?>
-                    <div class="card-custom">
-                        <div class="empty-state">
-                            <div style="font-size: 3rem;"></div>
-                            <p class="mt-3">No tienes pendientes por ahora. </p>
-                        </div>
+        <section aria-label="Tareas pendientes" style="margin-bottom:1.5rem;">
+            <div class="section-header">
+                <h2>
+                    <i class="fa-solid fa-list-check" style="color:var(--rose);font-size:0.95rem;"></i>
+                    Pendientes
+                    <span class="count count-rose" id="count-pendientes"><?php echo count($pendientesArr); ?></span>
+                </h2>
+            </div>
+            <div class="task-list" id="lista-pendientes">
+                <?php if (empty($pendientesArr)): ?>
+                    <div class="empty-state">
+                        <i class="fa-regular fa-face-smile-beam"></i>
+                        <p>No hay tareas pendientes. ¡Disfruta tu tiempo libre!</p>
                     </div>
                 <?php endif; ?>
             </div>
-        </div>
+        </section>
 
-        <!-- Completadas Recientemente -->
-        <?php if ($completadas->num_rows > 0): ?>
-            <div class="card-custom mt-5" style="opacity: 0.8; background: #f1f5f9;">
-                <h2 class="h5 mb-4 text-muted"> Logros Recientes</h2>
-                <div class="task-list">
-                    <?php while ($row = $completadas->fetch_assoc()): ?>
-                        <div class="task-item" style="border-left-color: #cbd5e1; background: rgba(255,255,255,0.5);">
-                            <div class="task-info">
-                                <span class="badge bg-secondary mb-2" style="font-size: 0.6rem; opacity: 0.7;"><?php echo htmlspecialchars($row['materia']); ?></span>
-                                <h3 style="text-decoration: line-through; color: #94a3b8; font-size: 1rem;"><?php echo htmlspecialchars($row['titulo']); ?></h3>
-                            </div>
-                            <div class="task-actions">
-                                <a href="index.php?eliminar=<?php echo $row['id']; ?>" class="btn btn-sm btn-light border" title="Eliminar definitivamente">✕</a>
-                            </div>
-                        </div>
-                    <?php endwhile; ?>
-                </div>
+        <?php if (!empty($completadasArr)): ?>
+        <section class="card" aria-label="Tareas completadas" style="opacity:0.85;">
+            <div class="section-header" style="margin-bottom:1rem;">
+                <h2>
+                    <i class="fa-solid fa-trophy" style="color:var(--cyan);font-size:0.9rem;"></i>
+                    Completadas
+                    <span class="count count-cyan" id="count-completadas"><?php echo count($completadasArr); ?></span>
+                </h2>
+                <button class="toggle-btn open" id="toggle-completadas" type="button" aria-label="Mostrar u ocultar completadas">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
             </div>
+            <div class="collapsible" id="contenedor-completadas">
+                <div class="task-list" id="lista-completadas"></div>
+            </div>
+        </section>
         <?php endif; ?>
+
+        <footer class="app-footer">TaskMaster — Tu productividad, sin recargas.</footer>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <div class="modal-overlay" id="modal-eliminar" role="dialog" aria-modal="true" aria-label="Confirmar eliminación">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3>Eliminar tarea</h3>
+            <p>Esta acción no se puede deshacer. ¿Estás seguro de que deseas eliminarla?</p>
+            <div class="modal-btns">
+                <button class="btn-modal-cancel" id="btn-cancelar-elim" type="button">Cancelar</button>
+                <button class="btn-modal-danger" id="btn-confirmar-elim" type="button">Eliminar</button>
+            </div>
+        </div>
+    </div>
 
+    <div id="toast-container" aria-live="polite"></div>
+
+    <script>
+    $(function () {
+
+        var datosIniciales = <?php echo json_encode([
+            'pendientes'  => $pendientesArr,
+            'completadas' => $completadasArr
+        ]); ?>;
+
+        renderPendientes(datosIniciales.pendientes);
+        renderCompletadas(datosIniciales.completadas);
+
+        function esc(str) {
+            if (!str) return '';
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(str));
+            return d.innerHTML;
+        }
+
+        function hoyStr() {
+            var d = new Date();
+            return d.getFullYear() + '-' +
+                   String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                   String(d.getDate()).padStart(2, '0');
+        }
+
+        function analizarFecha(fechaStr) {
+            var hoy = new Date(); hoy.setHours(0,0,0,0);
+            var fecha = new Date(fechaStr + 'T00:00:00');
+            var diff = Math.round((fecha - hoy) / 86400000);
+
+            if (diff < 0)  return { texto: 'Vencida hace ' + Math.abs(diff) + ' día' + (Math.abs(diff)>1?'s':''), clase: 'vencida', urgencia: 'u-vencida' };
+            if (diff === 0) return { texto: 'Hoy', clase: 'hoy', urgencia: 'u-hoy' };
+            if (diff === 1) return { texto: 'Mañana', clase: 'proxima', urgencia: 'u-proxima' };
+            if (diff <= 3)  return { texto: 'En ' + diff + ' días', clase: 'proxima', urgencia: 'u-proxima' };
+
+            var opciones = { day: 'numeric', month: 'short' };
+            return { texto: fecha.toLocaleDateString('es-ES', opciones), clase: 'normal', urgencia: 'u-normal' };
+        }
+
+        function renderPendientes(tareas) {
+            var $lista = $('#lista-pendientes');
+            $lista.empty();
+            if (tareas.length === 0) {
+                $lista.html(
+                    '<div class="empty-state">' +
+                        '<i class="fa-regular fa-face-smile-beam"></i>' +
+                        '<p>No hay tareas pendientes. ¡Disfruta tu tiempo libre!</p>' +
+                    '</div>'
+                );
+                return;
+            }
+            $.each(tareas, function (i, t) {
+                var f = analizarFecha(t.fecha);
+                var desc = t.descripcion ? '<p class="task-desc">' + esc(t.descripcion) + '</p>' : '';
+                $lista.append(
+                    '<div class="task-item priority-' + (t.prioridad || 'Media') + ' ' + f.urgencia + '" style="animation-delay:' + (i * 0.04) + 's">' +
+                        '<div class="task-info">' +
+                            '<div class="task-badges">' +
+                                '<span class="badge-materia">' + esc(t.materia || 'General') + '</span>' +
+                                '<span class="badge-tipo">' + esc(t.tipo || 'Tarea') + '</span>' +
+                            '</div>' +
+                            '<h3 class="task-title">' + esc(t.titulo) + '</h3>' +
+                            desc +
+                            '<span class="task-date f-' + f.clase + '"><i class="fa-regular fa-calendar"></i> ' + f.texto + ' | Prioridad: <strong>' + (t.prioridad || 'Media') + '</strong></span>' +
+                        '</div>' +
+                        '<div class="task-actions">' +
+                            '<button class="act-btn act-check btn-completar" data-id="' + t.id + '" title="Completar"><i class="fa-solid fa-check"></i></button>' +
+                            '<button class="act-btn act-del btn-eliminar" data-id="' + t.id + '" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>' +
+                        '</div>' +
+                    '</div>'
+                );
+            });
+        }
+
+        function renderCompletadas(tareas) {
+            var $lista = $('#lista-completadas');
+            $lista.empty();
+            if (tareas.length === 0) {
+                $lista.closest('.card').fadeOut(250);
+                return;
+            }
+            $lista.closest('.card').show();
+            $.each(tareas, function (i, t) {
+                $lista.append(
+                    '<div class="task-item done" style="animation-delay:' + (i * 0.04) + 's">' +
+                        '<div class="task-info">' +
+                            '<h3 class="task-title">' + esc(t.titulo) + '<span class="done-badge">Logrado</span></h3>' +
+                        '</div>' +
+                        '<div class="task-actions">' +
+                            '<button class="act-btn act-del btn-eliminar" data-id="' + t.id + '" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>' +
+                        '</div>' +
+                    '</div>'
+                );
+            });
+        }
+
+        function actualizarStats(pendientes, completadas) {
+            $('#stat-pendientes').text(pendientes.length);
+            $('#stat-completadas').text(completadas.length);
+            $('#count-pendientes').text(pendientes.length);
+            $('#count-completadas').text(completadas.length);
+        }
+
+        function cargarTareas() {
+            $.get('tareas.php', { accion: 'listar' }, function (res) {
+                if (!res.success) return;
+                renderPendientes(res.pendientes);
+                renderCompletadas(res.completadas);
+                actualizarStats(res.pendientes, res.completadas);
+            }, 'json');
+        }
+
+        $('#form-tarea').on('submit', function (e) {
+            e.preventDefault();
+            var titulo = $.trim($('#titulo').val());
+            if (!titulo) {
+                toast('Escribe un título para la tarea', 'warn');
+                $('#titulo').focus();
+                return;
+            }
+            var $btn = $(this).find('.btn-submit');
+            $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> Guardando...');
+
+            $.post('tareas.php', {
+                accion: 'crear',
+                titulo: titulo,
+                materia: $('#materia').val(),
+                tipo: $('#tipo').val(),
+                prioridad: $('#prioridad').val(),
+                descripcion: $('#descripcion').val(),
+                fecha: $('#fecha').val()
+            }, function (res) {
+                $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Guardar Tarea');
+                if (res.success) {
+                    toast(res.mensaje, 'ok');
+                    $('#form-tarea')[0].reset();
+                    $('#fecha').val(hoyStr());
+                    cargarTareas();
+                } else { toast(res.mensaje, 'err'); }
+            }, 'json').fail(function () {
+                $btn.prop('disabled', false).html('<i class="fa-solid fa-paper-plane"></i> Guardar Tarea');
+                toast('Error de conexión con el servidor', 'err');
+            });
+        });
+
+        $(document).on('click', '.btn-completar', function () {
+            var id = $(this).data('id');
+            var $item = $(this).closest('.task-item');
+            $item.css({ transition: 'all 0.3s ease', opacity: 0, transform: 'translateX(40px)' });
+            $.get('tareas.php', { accion: 'completar', id: id }, function (res) {
+                if (res.success) { toast(res.mensaje, 'ok'); cargarTareas(); }
+                else { toast(res.mensaje || 'Error al completar', 'err'); $item.css({ opacity: 1, transform: 'none' }); }
+            }, 'json').fail(function () {
+                toast('Error de conexión', 'err'); $item.css({ opacity: 1, transform: 'none' });
+            });
+        });
+
+        var idParaEliminar = null;
+
+        $(document).on('click', '.btn-eliminar', function () {
+            idParaEliminar = $(this).data('id');
+            $('#modal-eliminar').addClass('active');
+        });
+
+        $('#btn-cancelar-elim').on('click', function () {
+            $('#modal-eliminar').removeClass('active'); idParaEliminar = null;
+        });
+
+        $('#modal-eliminar').on('click', function (e) {
+            if ($(e.target).is('#modal-eliminar')) { $(this).removeClass('active'); idParaEliminar = null; }
+        });
+
+        $(document).on('keydown', function (e) {
+            if (e.key === 'Escape' && $('#modal-eliminar').hasClass('active')) {
+                $('#modal-eliminar').removeClass('active'); idParaEliminar = null;
+            }
+        });
+
+        $('#btn-confirmar-elim').on('click', function () {
+            if (idParaEliminar === null) return;
+            var $btn = $(this);
+            $btn.prop('disabled', true).text('Eliminando...');
+            $.get('tareas.php', { accion: 'eliminar', id: idParaEliminar }, function (res) {
+                $btn.prop('disabled', false).text('Eliminar');
+                $('#modal-eliminar').removeClass('active');
+                if (res.success) { toast(res.mensaje, 'ok'); cargarTareas(); }
+                else { toast(res.mensaje || 'Error al eliminar', 'err'); }
+                idParaEliminar = null;
+            }, 'json').fail(function () {
+                $btn.prop('disabled', false).text('Eliminar');
+                $('#modal-eliminar').removeClass('active');
+                toast('Error de conexión', 'err'); idParaEliminar = null;
+            });
+        });
+
+        $('#toggle-completadas').on('click', function () {
+            $(this).toggleClass('open');
+            $('#contenedor-completadas').toggleClass('collapsed');
+        });
+
+        function toast(mensaje, tipo) {
+            var iconos  = { ok: 'fa-solid fa-circle-check', err: 'fa-solid fa-circle-xmark', warn: 'fa-solid fa-circle-exclamation' };
+            var colores = { ok: 'var(--success)', err: 'var(--danger)', warn: 'var(--amber)' };
+            var $t = $('<div class="toast"><i class="' + (iconos[tipo]||iconos.ok) + '" style="color:' + (colores[tipo]||colores.ok) + '"></i><span>' + esc(mensaje) + '</span></div>');
+            $('#toast-container').append($t);
+            $t[0].offsetWidth;
+            $t.addClass('visible');
+            setTimeout(function () { $t.removeClass('visible'); setTimeout(function () { $t.remove(); }, 350); }, 3000);
+        }
+
+    });
+    </script>
 </body>
-
 </html>
